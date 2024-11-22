@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/vue-auth-app.iml" filepath="$PROJECT_DIR$/.idea/vue-auth-app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/computer-room-remote-auth-ui.iml" filepath="$PROJECT_DIR$/.idea/computer-room-remote-auth-ui.iml" />
     </modules>
   </component>
 </project>
