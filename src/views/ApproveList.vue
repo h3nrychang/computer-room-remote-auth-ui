@@ -1,34 +1,55 @@
 <template>
-  <div class="approve-list-container">
+  <div class="approve-list-container" v-loading="loading">
     <el-space direction="vertical" class="header">
       <el-text class="mx-0" size="large">待审核工单列表</el-text>
     </el-space>
 
-    <el-table v-loading="loading" :data="approves" style="width: 100%">
-      <el-table-column label="ID" prop="id" width="40" />
-      <el-table-column label="机房名称" prop="room_name" />
-      <el-table-column label="申请人" prop="user_name" />
-      <el-table-column label="联系电话" prop="user_telephone" />
-      <el-table-column label="备注" prop="notes" />
-      <el-table-column label="状态" :formatter="formatStatus" />
-
-      <el-table-column label="操作" width="180">
-        <template #default="{ row }">
-          <el-button v-if="!row.app_status" @click="approveWorkOrder(row.id)" type="success" size="small">通过</el-button>
-          <el-button v-if="!row.app_status" @click="rejectWorkOrder(row.id)" type="danger" size="small">拒绝</el-button>
-          <span v-else>已处理</span>
-        </template>
-      </el-table-column>
-    </el-table>
+    <!-- 卡片列表 -->
+    <div class="card-list">
+      <el-card v-for="(row, index) in approves" :key="index" class="card">
+        <div class="card-content">
+          <div class="card-header">
+<!--            <span class="card-title">工单 ID: {{ row.id }}</span>-->
+            <span class="card-title">{{ row.room_name }}</span>
+            <span class="card-status">{{ formatStatus(row) }}</span>
+          </div>
+          <div class="card-body">
+<!--            <p>机房名称: {{ row.room_name }}</p>-->
+            <p>申请人: {{ row.user_name }}</p>
+            <p>联系电话: {{ row.user_telephone }}</p>
+            <p>事由: {{ row.notes || '申请人未填写' }}</p>
+          </div>
+          <div class="card-actions">
+            <el-button
+                v-if="!row.app_status"
+                @click="approveWorkOrder(row.id)"
+                type="success"
+                size="small"
+            >
+              通过
+            </el-button>
+            <el-button
+                v-if="!row.app_status"
+                @click="rejectWorkOrder(row.id)"
+                type="danger"
+                size="small"
+            >
+              拒绝
+            </el-button>
+            <span v-else>已处理</span>
+          </div>
+        </div>
+      </el-card>
+    </div>
 
     <!-- 分页 -->
     <el-pagination
-      v-if="totalPages > 1"
-      :current-page="currentPage"
-      :page-size="10"
-      :total="totalItems"
-      layout="prev, pager, next"
-      @current-change="handlePageChange"
+        v-if="totalPages > 1"
+        :current-page="currentPage"
+        :page-size="10"
+        :total="totalItems"
+        layout="prev, pager, next"
+        @current-change="handlePageChange"
     />
   </div>
 </template>
@@ -43,12 +64,12 @@ const approves = ref<any[]>([])  // 审批工单列表
 const totalPages = ref(1)  // 总页数
 const totalItems = ref(0)  // 总条数
 const currentPage = ref(1)  // 当前页数
-const loading = ref(true);
+const loading = ref(true)
 
 // 获取待审核工单列表
 const getApproveList = async (page: number) => {
   try {
-    loading.value = true;
+    loading.value = true
     const response = await axios.get('/approve/list', {
       params: {
         pro_status: false, // 显示待审核的工单
@@ -61,7 +82,7 @@ const getApproveList = async (page: number) => {
   } catch (error) {
     ElMessage.error('获取待审核工单失败')
   } finally {
-    loading.value = false;
+    loading.value = false
   }
 }
 
@@ -75,7 +96,7 @@ const approveWorkOrder = async (id: number) => {
   try {
     const response = await axios.post('/approve/approve', {
       approve_id: id,
-      approve_status: true  // 审批通过
+      approve_status: true // 审批通过
     })
     ElMessage.success(response.data.detail || '审批通过')
     // 更新工单列表
@@ -90,7 +111,7 @@ const rejectWorkOrder = async (id: number) => {
   try {
     const response = await axios.post('/approve/approve', {
       approve_id: id,
-      approve_status: false  // 审批不通过
+      approve_status: false // 审批不通过
     })
     ElMessage.success(response.data.detail || '已拒绝该申请')
     // 更新工单列表
@@ -121,7 +142,53 @@ onMounted(() => {
   margin-bottom: 20px;
 }
 
-.el-table {
-  margin-bottom: 20px;
+.card-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); /* 自动调整列数，最小宽度为300px */
+  gap: 20px;
+}
+
+.card {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-title {
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.card-status {
+  font-size: 14px;
+  color: #666;
+}
+
+.card-body {
+  font-size: 14px;
+  color: #666;
+}
+
+.card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+@media (max-width: 768px) {
+  .card {
+    width: 100%;
+  }
 }
 </style>

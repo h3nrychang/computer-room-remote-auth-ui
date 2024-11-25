@@ -3,60 +3,49 @@
       <el-space direction="vertical" class="header">
         <el-text class="mx-0" size="large">全部工单</el-text>
       </el-space>
-<!--  -->
-<!--      <el-table v-loading="loading" :data="approves" style="width: 100%">-->
-<!--        <el-table-column label="ID" prop="id" width="40" />-->
-<!--        <el-table-column label="机房名称" prop="room_name" />-->
-<!--        <el-table-column label="申请人" prop="user_name" />-->
-<!--        <el-table-column label="联系电话" prop="user_telephone" />-->
-<!--        <el-table-column label="备注" prop="notes" />-->
-<!--        <el-table-column label="审批结果" :formatter="formatStatus" />-->
-<!--      </el-table>-->
-
-      <el-table :data="approvalList" style="width: 100%">
-        <el-table-column prop="room_name" label="机房" />
-        <el-table-column prop="create_time" label="申请时间" />
-        <!-- <el-table-column prop="user_name" label="申请人姓名" /> -->
-        <el-table-column label="审批状态">
-          <template #default="scope">
-            <el-tag type="info" v-if="!scope.row.pro_status">未处理</el-tag>
-            <el-tag type="success" v-else-if="scope.row.app_status">已通过</el-tag>
-            <el-tag type="danger" v-else>被拒绝</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="开门状态">
-          <template #default="scope">
-            <el-tag type="info" v-if="!scope.row.pro_status">待审核</el-tag>
-            <el-tag type="success" v-else-if="scope.row.open_status">已开门</el-tag>
-            <el-tag type="danger" v-else>未开门</el-tag>
-          </template>
-        </el-table-column>
-
-        <el-table-column label="操作" width="120">
-          <template #default="scope">
-            <!-- <el-button size="mini" type="text" @click="viewDetail(scope.row)">
-              查看详情
-            </el-button>
-            <el-button size="mini" type="text" @click="viewDetail(scope.row)">
-              规范运维
-            </el-button> -->
-            <el-button-group class="ml-4">
-              <el-popover placement="top-start" title="工单详情" :width="200" trigger="hover"
-                          content="点击查看申请人、机房长、手机号等相关信息">
-                <template #reference>
-                  <el-button :icon="Tickets" @click="viewDetail(scope.row)" />
-                </template>
-              </el-popover>
-              <el-popover placement="top-start" title="机房规范维护" :width="200" trigger="hover" content="上传开门关门照片，规范机房进出环节">
-                <template #reference>
-                  <el-button :icon="VideoCamera" @click="roomAccess()" />
-                </template>
-              </el-popover>
-
-            </el-button-group>
-          </template>
-        </el-table-column>
-      </el-table>
+      <!-- 卡片列表 -->
+      <div class="card-list">
+        <el-card
+            v-for="(item, index) in approvalList"
+            :key="index"
+            shadow="always"
+            class="card"
+        >
+          <div class="card-content">
+            <div class="card-header">
+              <span class="card-title">{{ item.room_name }}</span>
+              <el-tag type="info" v-if="!item.pro_status">未处理</el-tag>
+              <el-tag type="success" v-else-if="item.app_status">已通过</el-tag>
+              <el-tag type="danger" v-else>被拒绝</el-tag>
+            </div>
+            <div class="card-body">
+              <p>申请时间：{{ item.create_time }}</p>
+              <p>
+                开门状态：
+                <el-tag type="success" v-if="item.open_status">已开门</el-tag>
+                <el-tag type="danger" v-else>未开门</el-tag>
+              </p>
+            </div>
+            <div class="card-actions">
+              <el-button
+                  size="small"
+                  type="primary"
+                  @click="viewDetail(item)"
+              >
+                详情
+              </el-button>
+              <el-button
+                  size="small"
+                  type="primary"
+                  :disabled="!item.pro_status"
+                  @click="fetchPhotos(item.id)"
+              >
+                查看照片
+              </el-button>
+            </div>
+          </div>
+        </el-card>
+      </div>
 
       <el-dialog v-model="detailDialogVisible" title="工单详情" :width="dialogWidth" :close-on-click-modal="false">
         <el-descriptions border :column="1">
@@ -64,12 +53,16 @@
           <el-descriptions-item label="申请进入机房">{{ selectedDetail.room_name }}</el-descriptions-item>
           <el-descriptions-item label="系统显示名称">{{ selectedDetail.sys_name }}</el-descriptions-item>
           <!-- <el-descriptions-item label="机房长ID"></el-descriptions-item> -->
-          <el-descriptions-item label="机房长与ID">{{ selectedDetail.manager_name }}-{{ selectedDetail.manager_id
-            }}</el-descriptions-item>
+          <el-descriptions-item label="机房长与ID">{{ selectedDetail.manager_name }}-{{
+              selectedDetail.manager_id
+            }}
+          </el-descriptions-item>
           <el-descriptions-item label="机房长手机号">{{ selectedDetail.manager_telephone }}</el-descriptions-item>
           <!-- <el-descriptions-item label="申请人ID">{{ selectedDetail.user_id }}</el-descriptions-item> -->
-          <el-descriptions-item label="申请人与ID">{{ selectedDetail.user_name }}-{{ selectedDetail.user_id
-            }}</el-descriptions-item>
+          <el-descriptions-item label="申请人与ID">{{ selectedDetail.user_name }}-{{
+              selectedDetail.user_id
+            }}
+          </el-descriptions-item>
           <el-descriptions-item label="申请人手机号">{{ selectedDetail.user_telephone }}</el-descriptions-item>
           <el-descriptions-item label="处理状态">
             <el-tag type="info" v-if="!selectedDetail.pro_status">未审批</el-tag>
@@ -81,14 +74,43 @@
             <el-tag type="success" v-if="selectedDetail.sys_status">支持</el-tag>
             <el-tag type="danger" v-else>不支持</el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="开门方式" v-if="!selectedDetail.sys_status">{{ selectedDetail.sys_notes
-            }}</el-descriptions-item>
+          <el-descriptions-item label="开门方式" v-if="!selectedDetail.sys_status">{{
+              selectedDetail.sys_notes
+            }}
+          </el-descriptions-item>
           <el-descriptions-item label="备注">{{ selectedDetail.notes || '无' }}</el-descriptions-item>
         </el-descriptions>
         <template #footer>
           <el-button @click="detailDialogVisible = false">关闭</el-button>
         </template>
       </el-dialog>
+
+      <el-dialog v-model="photoDialogVisible" title="工单照片" :width="dialogWidth" :close-on-click-modal="false">
+        <div v-if="photos.length">
+          <div class="photo-gallery">
+            <el-row gutter="20">
+              <el-col :span="6" v-for="(photo, index) in photos" :key="index">
+                <el-image
+                    :src="photo.path"
+                    :alt="`照片类型: ${photo.type}`"
+                    :preview-src-list="photos.map(p => p.path)"
+                    fit="contain"
+                >
+                  <div class="image-caption">{{ photo.type }}</div>
+                </el-image>
+              </el-col>
+            </el-row>
+          </div>
+        </div>
+        <div v-else>
+          <p style="text-align: center; color: gray;">暂无照片</p>
+        </div>
+
+        <template #footer>
+          <el-button @click="photoDialogVisible = false">关闭</el-button>
+        </template>
+      </el-dialog>
+
 
       <!-- 分页 -->
       <el-pagination
@@ -106,8 +128,8 @@
   import { ref, onMounted } from 'vue'
   import axios from '@/api/axiosConfig'
   import { ElMessage } from 'element-plus'
-  import {Tickets, VideoCamera} from "@element-plus/icons-vue";
-  
+  import axiosInstance from '@/api/axiosConfig';
+
   // 声明数据
   const approves = ref<any[]>([])  // 审批工单列表
   const totalPages = ref(1)  // 总页数
@@ -146,11 +168,6 @@
     getApproveList(page)
   }
 
-  // import { ref, onMounted } from 'vue';
-  import axiosInstance from '@/api/axiosConfig';
-  // import { CirclePlus, Tickets, VideoCamera } from '@element-plus/icons-vue'
-
-
   interface ApprovalDetail {
     id?: number;
     user_id?: number;
@@ -176,6 +193,7 @@
 
   const createDialogVisible = ref(false);
   const detailDialogVisible = ref(false);
+  const photoDialogVisible = ref(false);
   const dialogWidth = ref('60%');
   const approvalList = ref<ApprovalDetail[]>([]);
   // const totalPages = ref(0);
@@ -183,6 +201,7 @@
   const pageSize = ref(10);
   // const totalItems = ref(0);
   const selectedDetail = ref<ApprovalDetail>({});
+  const photos = ref<Photo[]>([]); // 用于存储获取到的照片数据
 
   // 给加一个响应布局，给节约一点寸土寸金手机屏幕
   const updateDialogWidth = () => {
@@ -219,21 +238,40 @@
     detailDialogVisible.value = true;
   };
 
+  interface Photo {
+    path: string;
+    type: string;
+  }
+
+  const API_BASE_URL = 'http://113.45.195.128:8081/';
+
+  const fetchPhotos = async (approveId: number) => {
+    try {
+      const response = await axiosInstance.get('/approve/photograph', {
+        params: { approve_id: approveId },
+      });
+      photos.value = response.data.photos.map((photo: any) => ({
+        ...photo,
+        path: `${API_BASE_URL}${photo.path}`,
+      }));
+      photoDialogVisible.value = true;
+    } catch (error) {
+      ElMessage.error('获取照片失败，你可以将错误信息截图给开发者：' + error);
+      console.error('获取照片失败:', error);
+    }
+  };
+
+
   // 初始化数据
   onMounted(() => {
     fetchApprovalList();
   });
 
-
-  // 初次加载历史审批工单列表
-  // onMounted(() => {
-  //   getApproveList(currentPage.value)
-  // })
   </script>
   
   <style scoped>
   .approve-list-container {
-    padding: 20px;
+    padding: 0;
   }
   
   .header {
@@ -242,6 +280,61 @@
   
   .el-table {
     margin-bottom: 20px;
+  }
+
+  body {
+    margin: 0;
+    font-family: 'Arial', sans-serif;
+  }
+
+  .card-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); /* 自动调整列数，最小宽度为300px */
+    gap: 20px;
+  }
+
+  .card {
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .card-title {
+    font-weight: bold;
+    font-size: 16px;
+  }
+
+  .card-body {
+    font-size: 14px;
+    color: #666;
+  }
+
+  .card-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  .el-image {
+    border-radius: 8px;
+  }
+
+
+  @media (max-width: 768px) {
+    .card {
+      width: 100%;
+    }
   }
   </style>
   

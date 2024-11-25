@@ -1,7 +1,6 @@
 import axios from 'axios';
 
 const API_BASE_URL = 'http://113.45.195.128:8081';
-// const API_BASE_URL = 'http://127.0.0.1:8081';
 
 // 登录请求
 export const login = async (username, password, telephone) => {
