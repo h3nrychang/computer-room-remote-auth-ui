@@ -24,11 +24,11 @@
       </el-form-item>
 
       <!-- 审批按钮，角色ID为1或2时显示 -->
-      <el-form-item v-if="roleId == 1">
-        <el-button type="warning" @click="approveApplication" style="width: 100%">
-          审批他人申请
-        </el-button>
-      </el-form-item>
+<!--      <el-form-item v-if="roleId == 1">-->
+<!--        <el-button type="warning" @click="approveApplication" style="width: 100%">-->
+<!--          审批他人申请-->
+<!--        </el-button>-->
+<!--      </el-form-item>-->
     </el-form>
   </div>
 </template>
