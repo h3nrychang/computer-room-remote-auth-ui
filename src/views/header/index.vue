@@ -3,11 +3,11 @@
 <!--    <el-icon @click="toggleMenu" class="menu-toggle-icon">-->
 <!--        <component :is="isMenuExpanded ? 'Fold' : 'Expand'" />-->
 <!--      </el-icon>-->
-    <div class="header-left">绵阳移动机房门禁管理系统</div>
+    <div class="header-left">机房门禁管理系统</div>
     <div class="header-right">
 
       <span class="username">{{ username }}</span>
-      <el-button @click="handleLogout" type="danger" size="small">安全退出</el-button>
+      <el-button @click="handleLogout" :icon="SwitchButton" type="danger" size="small"></el-button>
     </div>
   </div>
 </template>
@@ -16,7 +16,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from '@/api/axiosConfig'
-import { Expand, Fold } from '@element-plus/icons-vue'
+import {Expand, Fold, SwitchButton} from '@element-plus/icons-vue'
 
 const username = ref('')
 const router = useRouter()

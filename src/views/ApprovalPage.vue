@@ -2,62 +2,90 @@
   <el-container style="height: 100vh;">
     <!-- Header -->
     <el-header style="display: flex; justify-content: space-between; align-items: center;">
-      <h2>需要进入机房？</h2>
+<!--      <h2>需要进入机房？</h2>-->
       <el-button type="primary" :icon="CirclePlus" @click="openCreateDialog">新建进入机房审批工单</el-button>
     </el-header>
 
     <!-- Main -->
-    <el-main>
-      <h3>当前正在审批中的工单</h3>
-      <el-table :data="approvalList" style="width: 100%">
-        <el-table-column prop="room_name" label="机房" />
-        <el-table-column prop="create_time" label="申请时间" />
-        <!-- <el-table-column prop="user_name" label="申请人姓名" /> -->
-        <el-table-column label="审批状态">
-          <template #default="scope">
-            <el-tag type="info" v-if="!scope.row.pro_status">未处理</el-tag>
-            <el-tag type="success" v-else-if="scope.row.app_status">已通过</el-tag>
-            <el-tag type="danger" v-else>被拒绝</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="开门状态">
-          <template #default="scope">
-            <el-tag type="info" v-if="!scope.row.pro_status">待审核</el-tag>
-            <el-tag type="success" v-else-if="scope.row.open_status">已开门</el-tag>
-            <el-tag type="danger" v-else>未开门</el-tag>
-          </template>
-        </el-table-column>
+<!--    <el-main>-->
+<!--      <h3>当前正在审批中的工单</h3>-->
+<!--      <el-table :data="approvalList" style="width: 100%">-->
+<!--        <el-table-column prop="room_name" label="机房" />-->
+<!--        <el-table-column prop="create_time" label="申请时间" />-->
+<!--        <el-table-column label="审批状态">-->
+<!--          <template #default="scope">-->
+<!--            <el-tag type="info" v-if="!scope.row.pro_status">未处理</el-tag>-->
+<!--            <el-tag type="success" v-else-if="scope.row.app_status">已通过</el-tag>-->
+<!--            <el-tag type="danger" v-else>被拒绝</el-tag>-->
+<!--          </template>-->
+<!--        </el-table-column>-->
+<!--        <el-table-column label="开门状态">-->
+<!--          <template #default="scope">-->
+<!--            <el-tag type="info" v-if="!scope.row.pro_status">待审核</el-tag>-->
+<!--            <el-tag type="success" v-else-if="scope.row.open_status">已开门</el-tag>-->
+<!--            <el-tag type="danger" v-else>未开门</el-tag>-->
+<!--          </template>-->
+<!--        </el-table-column>-->
 
-        <el-table-column label="操作" width="120">
-          <template #default="scope">
-            <!-- <el-button size="mini" type="text" @click="viewDetail(scope.row)">
-              查看详情
-            </el-button>
-            <el-button size="mini" type="text" @click="viewDetail(scope.row)">
-              规范运维
-            </el-button> -->
-            <el-button-group class="ml-4">
-<!--              <el-popover placement="top-start" title="工单详情" :width="200" trigger="hover"-->
-<!--                content="点击查看申请人、机房长、手机号等相关信息">-->
-<!--                <template #reference>-->
-                  <el-button type="primary" :icon="Tickets" @click="viewDetail(scope.row)" />
-<!--                </template>-->
-<!--              </el-popover>-->
-<!--              <el-popover placement="top-start" title="机房规范维护" :width="200" trigger="hover" content="上传开门关门照片，规范机房进出环节">-->
-<!--                <template #reference>-->
-                  <el-button type="primary" :icon="VideoCamera" @click="goToRoomEntry(scope.row.id)" />
-<!--                </template>-->
-<!--              </el-popover>-->
+<!--        <el-table-column label="操作" width="120">-->
+<!--          <template #default="scope">-->
+<!--            <el-button-group class="ml-4">-->
+<!--                  <el-button type="primary" :icon="Tickets" @click="viewDetail(scope.row)" />-->
+<!--                  <el-button type="primary" :icon="VideoCamera" @click="goToRoomEntry(scope.row.id)" />-->
 
-            </el-button-group>
-          </template>
-        </el-table-column>
-      </el-table>
-      <el-pagination v-if="totalPages > 1" style="margin-top: 20px;" background layout="prev, pager, next"
-        :current-page="currentPage" :page-size="pageSize" :total="totalItems" @current-change="fetchApprovalList" />
-    </el-main>
+<!--            </el-button-group>-->
+<!--          </template>-->
+<!--        </el-table-column>-->
+<!--      </el-table>-->
+<!--      <el-pagination v-if="totalPages > 1" style="margin-top: 20px;" background layout="prev, pager, next"-->
+<!--        :current-page="currentPage" :page-size="pageSize" :total="totalItems" @current-change="fetchApprovalList" />-->
+<!--    </el-main>-->
+      <h3>我申请的工单</h3>
 
-    <!-- Create Dialog -->
+      <!-- 卡片列表 -->
+    <div class="card-list">
+        <el-card
+            v-for="(item, index) in approvalList"
+            :key="index"
+            shadow="always"
+            class="card"
+        >
+          <div class="card-content">
+            <div class="card-header">
+              <span class="card-title">{{ item.room_name }}</span>
+              <el-tag type="info" v-if="!item.pro_status">未处理</el-tag>
+              <el-tag type="success" v-else-if="item.app_status">已通过</el-tag>
+              <el-tag type="danger" v-else>被拒绝</el-tag>
+            </div>
+            <div class="card-body">
+              <p>申请时间：{{ item.create_time }}</p>
+              <p>
+                开门状态：
+                <el-tag type="success" v-if="item.open_status">已开门</el-tag>
+                <el-tag type="danger" v-else>未开门</el-tag>
+              </p>
+            </div>
+            <div class="card-actions">
+              <el-button type="primary" :icon="Tickets" @click="viewDetail(item)" />
+              <el-button type="primary" :icon="VideoCamera" @click="goToRoomEntry(item.id)" />
+            </div>
+          </div>
+        </el-card>
+      </div>
+
+      <!-- 分页 -->
+      <el-pagination
+          v-if="totalPages > 1"
+          style="margin-top: 20px;"
+          background
+          layout="prev, pager, next"
+          :current-page="currentPage"
+          :page-size="pageSize"
+          :total="totalItems"
+          @current-change="fetchApprovalList"
+      />
+
+    <!-- 新建审批工单弹窗 -->
     <el-dialog v-model="createDialogVisible" title="新建审批工单" :width="dialogWidth" :close-on-click-modal="false">
       <iframe src="/approve" style="width: 100%; height: 400px; border: none;"></iframe>
       <template #footer>
@@ -197,5 +225,50 @@ onMounted(() => {
 body {
   margin: 0;
   font-family: 'Arial', sans-serif;
+}
+
+.card-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); /* 自动调整列数，最小宽度为300px */
+  gap: 20px;
+}
+
+.card {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-title {
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.card-body {
+  font-size: 14px;
+  color: #666;
+}
+
+.card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+@media (max-width: 768px) {
+  .card {
+    width: 100%;
+  }
 }
 </style>

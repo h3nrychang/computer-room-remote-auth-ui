@@ -1,6 +1,6 @@
 <template>
   <div class="footer">
-    henrychang&nbsp;&nbsp;<a href="https://github.com/h3nrychang" target="_blank">GitHub</a>
+    Computer Room Remote Auth UI&nbsp;&nbsp;<a href="https://gitee.com/h3nrychang/computer-room-remote-auth-ui" target="_blank">Gitee项目地址</a>
   </div>
 </template>
 
