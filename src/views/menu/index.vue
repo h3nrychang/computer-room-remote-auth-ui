@@ -14,6 +14,33 @@
     :data="users" 
     style="width: 100%"
   >
+    <el-menu-item index="/dashboard">发起申请</el-menu-item>
+
+    <el-sub-menu index="1" v-if="roleID == 1">
+      <template #title>
+        <span>工单审批</span>
+      </template>
+      <el-menu-item index="/approvelistpc">待审工单</el-menu-item>
+      <el-menu-item index="/approvehistory">历史工单</el-menu-item>
+    </el-sub-menu>
+
+    <el-sub-menu index="2">
+      <template #title>
+        <span>个人中心</span>
+      </template>
+      <el-menu-item index="/changepassword">修改密码</el-menu-item>
+      <el-menu-item index="/changephonenumber">换绑手机</el-menu-item>
+    </el-sub-menu>
+
+    <el-sub-menu index="3" v-if="roleID == 1">
+      <template #title>
+        <span>系统管理</span>
+      </template>
+      <el-menu-item index="/room">机房管理</el-menu-item>
+      <el-menu-item index="/manager">机房长管理</el-menu-item>
+      <el-menu-item index="/users">用户管理</el-menu-item>
+    </el-sub-menu>
+
     <el-menu-item index="/dashboard"><el-icon><DataLine /></el-icon>Dashboard</el-menu-item>
 
     <el-sub-menu index="1">

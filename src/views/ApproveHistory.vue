@@ -1,8 +1,15 @@
 <template>
     <div class="approve-list-container">
-      <el-space direction="vertical" class="header">
-        <el-text class="mx-0" size="large">全部工单</el-text>
-      </el-space>
+<!--      <el-space direction="vertical" class="header">-->
+<!--        <el-text class="mx-0" size="large">全部工单</el-text>-->
+<!--      </el-space>-->
+
+<!--      切换工单状态-->
+      <el-radio-group v-model="requestType" @change="handleRequestChange" style="padding-bottom: 10px">
+        <el-radio-button label="normal">全部工单</el-radio-button>
+        <el-radio-button label="error">异常工单</el-radio-button>
+      </el-radio-group>
+
       <!-- 卡片列表 -->
       <div class="card-list">
         <el-card
@@ -24,6 +31,9 @@
                 开门状态：
                 <el-tag type="success" v-if="item.open_status">已开门</el-tag>
                 <el-tag type="danger" v-else>未开门</el-tag>
+              </p>
+              <p v-if="item.error_msg" style="color: red;">
+                错误信息：{{ item.error_msg }}
               </p>
             </div>
             <div class="card-actions">
@@ -125,7 +135,7 @@
   </template>
   
   <script lang="ts" setup>
-  import { ref, onMounted } from 'vue'
+  import { ref, onMounted,nextTick } from 'vue'
   import axios from '@/api/axiosConfig'
   import { ElMessage } from 'element-plus'
   import axiosInstance from '@/api/axiosConfig';
@@ -136,36 +146,61 @@
   const totalItems = ref(0)  // 总条数
   const currentPage = ref(1)  // 当前页数
   const loading = ref(true);
-  
-  // 获取历史审批工单列表
-  const getApproveList = async (page: number) => {
+  const requestType = ref<string>('normal') // 用于控制请求类型
+
+
+  // 获取工单列表
+  const getApproveList = async (page: number, type: string) => {
     try {
       loading.value = true;
-      const response = await axios.get('/approve/list', {
-        params: {
-          pro_status: true, // 只显示已处理的工单
-          page: page
-        }
-      })
-      approves.value = response.data.approves
-      totalPages.value = response.data.total_pages
-      totalItems.value = response.data.approves.length
+      let url = '/approve/list';
+      let params = { pro_status: true, page: page };
+
+      if (type === 'error') {
+        url = '/approve/error/list';
+      }
+
+      const response = await axios.get(url, { params });
+      approvalList.value = response.data.approves.map((item: any) => ({
+        ...item,
+        error_msg: type === 'error' ? item.error_msg : null,  // 如果是异常工单，则显示错误信息
+      }));
+      approvalList.value = [...response.data.approves];  // 强制替换整个数组
+      totalPages.value = response.data.total_pages;
+      totalItems.value = response.data.approves.length;
+
+      console.log('approves updated:', approves.value);
     } catch (error) {
-      ElMessage.error('获取历史审批工单失败')
+      ElMessage.error('出现错误，您可以截图给开发者查看：' + error);
     } finally {
       loading.value = false;
     }
+  };
+
+  // 处理请求类型改变
+  const handleRequestChange = () => {
+    getApproveList(currentPage.value, requestType.value);
+    approves.value = [...approves.value];  // 使用 spread 操作符创建新的引用，强制触发视图更新
+    nextTick(() => {
+      console.log("UI should be updated now!");
+    });
   }
-  
+
   // 格式化状态
   const formatStatus = (row: any) => {
     return row.app_status ? '审批通过' : '被拒绝'
   }
-  
+
   // 处理分页切换
   const handlePageChange = (page: number) => {
     currentPage.value = page
-    getApproveList(page)
+    getApproveList(page, requestType.value)
+  }
+
+  // 查看工单详情
+  const viewDetail = (row: any) => {
+    selectedDetail.value = row;
+    detailDialogVisible.value = true;
   }
 
   interface ApprovalDetail {
@@ -232,11 +267,11 @@
   };
 
   // 查看工单详情
-  const viewDetail = (row: ApprovalDetail) => {
-    selectedDetail.value = row;
-    updateDialogWidth();
-    detailDialogVisible.value = true;
-  };
+  // const viewDetail = (row: ApprovalDetail) => {
+  //   selectedDetail.value = row;
+  //   updateDialogWidth();
+  //   detailDialogVisible.value = true;
+  // };
 
   interface Photo {
     path: string;

@@ -2,14 +2,10 @@
   <el-container style="height: 100vh;">
     <!-- Header -->
     <el-header style="display: flex; justify-content: space-between; align-items: center;">
-      <!--      <h2>需要进入机房？</h2>-->
       <el-button type="primary" :icon="CirclePlus" @click="openCreateDialog">新建进入机房审批工单</el-button>
     </el-header>
 
-    <h3>我申请的工单</h3>
-<!--    <el-space direction="vertical" class="header">-->
-<!--      <el-text class="mx-0" size="large">我申请的工单</el-text>-->
-<!--    </el-space>-->
+    <h3 style="padding-bottom: 10px">我申请的工单</h3>
 
     <!-- 卡片列表 -->
     <div class="card-list">
@@ -22,9 +18,10 @@
         <div class="card-content">
           <div class="card-header">
             <span class="card-title">{{ item.room_name }}</span>
-            <el-tag type="info" v-if="!item.pro_status">未处理</el-tag>
-            <el-tag type="success" v-else-if="item.app_status">已通过</el-tag>
-            <el-tag type="danger" v-else>被拒绝</el-tag>
+            <el-tag type="info" v-if="!item.pro_status && !item.isExpired">未处理</el-tag>
+            <el-tag type="success" v-else-if="item.app_status && !item.isExpired">已通过</el-tag>
+            <el-tag type="danger" v-else-if="!item.app_status && !item.isExpired">被拒绝</el-tag>
+            <el-tag type="warning" v-if="item.isExpired">已失效</el-tag> <!-- 添加失效状态 -->
           </div>
           <div class="card-body">
             <p>申请时间：{{ item.create_time }}</p>
@@ -43,6 +40,7 @@
               详情
             </el-button>
             <el-button
+                :disabled="item.isExpired"
                 size="small"
                 type="primary"
                 @click="goToRoomEntry(item.id)"
@@ -80,17 +78,9 @@
         <el-descriptions-item label="工单ID">{{ selectedDetail.id }}</el-descriptions-item>
         <el-descriptions-item label="申请进入机房">{{ selectedDetail.room_name }}</el-descriptions-item>
         <el-descriptions-item label="系统显示名称">{{ selectedDetail.sys_name }}</el-descriptions-item>
-        <!-- <el-descriptions-item label="机房长ID"></el-descriptions-item> -->
-        <el-descriptions-item label="机房长与ID">{{ selectedDetail.manager_name }}-{{
-            selectedDetail.manager_id
-          }}
-        </el-descriptions-item>
+        <el-descriptions-item label="机房长与ID">{{ selectedDetail.manager_name }}-{{ selectedDetail.manager_id }}</el-descriptions-item>
         <el-descriptions-item label="机房长手机号">{{ selectedDetail.manager_telephone }}</el-descriptions-item>
-        <!-- <el-descriptions-item label="申请人ID">{{ selectedDetail.user_id }}</el-descriptions-item> -->
-        <el-descriptions-item label="申请人与ID">{{ selectedDetail.user_name }}-{{
-            selectedDetail.user_id
-          }}
-        </el-descriptions-item>
+        <el-descriptions-item label="申请人与ID">{{ selectedDetail.user_name }}-{{ selectedDetail.user_id }}</el-descriptions-item>
         <el-descriptions-item label="申请人手机号">{{ selectedDetail.user_telephone }}</el-descriptions-item>
         <el-descriptions-item label="处理状态">
           <el-tag type="info" v-if="!selectedDetail.pro_status">未审批</el-tag>
@@ -102,10 +92,7 @@
           <el-tag type="success" v-if="selectedDetail.sys_status">支持</el-tag>
           <el-tag type="danger" v-else>不支持</el-tag>
         </el-descriptions-item>
-        <el-descriptions-item label="开门方式" v-if="!selectedDetail.sys_status">{{
-            selectedDetail.sys_notes
-          }}
-        </el-descriptions-item>
+        <el-descriptions-item label="开门方式" v-if="!selectedDetail.sys_status">{{ selectedDetail.sys_notes }}</el-descriptions-item>
         <el-descriptions-item label="备注">{{ selectedDetail.notes || '无' }}</el-descriptions-item>
       </el-descriptions>
       <template #footer>
@@ -116,11 +103,10 @@
 </template>
 
 <script setup lang="ts">
-import {ref, onMounted} from 'vue';
+import { ref, onMounted } from 'vue';
 import axiosInstance from '@/api/axiosConfig';
-import {CirclePlus, Tickets, VideoCamera} from '@element-plus/icons-vue'
-import {useRouter} from 'vue-router';
-
+import { CirclePlus } from '@element-plus/icons-vue';
+import { useRouter } from 'vue-router';
 
 interface ApprovalDetail {
   id?: number;
@@ -138,6 +124,7 @@ interface ApprovalDetail {
   notes?: string;
   sys_notes?: string;
   create_time?: string;
+  isExpired?: boolean;  // 添加过期状态
 }
 
 interface ApprovalListResponse {
@@ -156,7 +143,6 @@ const totalItems = ref(0);
 const selectedDetail = ref<ApprovalDetail>({});
 const router = useRouter();
 
-
 // 给加一个响应布局，给寸土寸金手机屏幕节约一点空间
 const updateDialogWidth = () => {
   const screenWidth = window.innerWidth;
@@ -173,10 +159,21 @@ const openCreateDialog = () => {
 const fetchApprovalList = async (page = 1) => {
   try {
     const response = await axiosInstance.get<ApprovalListResponse>('/approve/me', {
-      params: {page},
+      params: { page },
     });
     const data = response.data;
-    approvalList.value = data.approves;
+    approvalList.value = data.approves.map(item => {
+      const currentTime = new Date();
+      const createTime = new Date(item.create_time);
+
+      // 检查当前日期和工单创建日期是否相同
+      const isSameDay = currentTime.toDateString() === createTime.toDateString();
+
+      // 如果是同一天的工单，isExpired 为 false；否则为 true
+      item.isExpired = !isSameDay;
+
+      return item;
+    });
     totalPages.value = data.total_pages;
     totalItems.value = data.approves.length * data.total_pages;
     currentPage.value = page;
@@ -194,13 +191,8 @@ const viewDetail = (row: ApprovalDetail) => {
 
 // 去开门了
 const goToRoomEntry = (approveId: number) => {
-  // const approve_id = ${approveId}
-  // router.push({ path: '/roomentry', query: { approve_id: approveId.toString() } });
-  // localStorage.setItem('approveId', )
-  router.push({path: `/roomentry/${approveId}`});
-
+  router.push({ path: `/roomentry/${approveId}` });
 };
-
 
 // 初始化数据
 onMounted(() => {
