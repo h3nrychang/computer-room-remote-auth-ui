@@ -9,6 +9,7 @@
       <span class="username">{{ username }}</span>
       <el-button @click="handleLogout" :icon="SwitchButton" type="danger" size="small"></el-button>
     </div>
+
   </div>
 </template>
 
@@ -21,6 +22,7 @@ import {Expand, Fold, SwitchButton} from '@element-plus/icons-vue'
 const username = ref('')
 const router = useRouter()
 const isMenuExpanded = ref(true)  // 控制菜单是否展开
+const version = ref(process.env.VERSION)
 
 // 切换菜单展开状态
 const toggleMenu = () => {
@@ -78,5 +80,12 @@ onMounted(() => {
 
 .username {
   margin-right: 15px;
+}
+
+.footer-version {
+  text-align: center;
+  font-size: 12px;
+  color: #999;
+  margin-top: 10px;
 }
 </style>

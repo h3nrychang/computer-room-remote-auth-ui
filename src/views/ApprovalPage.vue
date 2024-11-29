@@ -1,5 +1,6 @@
 <template>
-  <el-container style="height: 100vh;">
+<!--  审批界面-->
+  <el-container style="height: auto;" v-loading="loading">
     <!-- Header -->
     <el-header style="display: flex; justify-content: space-between; align-items: center;">
       <el-button type="primary" :icon="CirclePlus" @click="openCreateDialog">新建进入机房审批工单</el-button>
@@ -10,7 +11,7 @@
     <!-- 卡片列表 -->
     <div class="card-list">
       <el-card
-          v-for="(item, index) in approvalList"
+          v-for="(item, index) in filteredApprovalList"
           :key="index"
           shadow="always"
           class="card"
@@ -21,14 +22,19 @@
             <el-tag type="info" v-if="!item.pro_status && !item.isExpired">未处理</el-tag>
             <el-tag type="success" v-else-if="item.app_status && !item.isExpired">已通过</el-tag>
             <el-tag type="danger" v-else-if="!item.app_status && !item.isExpired">被拒绝</el-tag>
-            <el-tag type="warning" v-if="item.isExpired">已失效</el-tag> <!-- 添加失效状态 -->
+            <el-tag type="warning" v-if="item.isExpired">已失效</el-tag>
           </div>
           <div class="card-body">
             <p>申请时间：{{ item.create_time }}</p>
+<!--            <p>-->
+<!--              开门状态：-->
+<!--              <el-tag type="success" v-if="item.open_status">已开门</el-tag>-->
+<!--              <el-tag type="danger" v-else>未开门</el-tag>-->
+<!--            </p>-->
             <p>
-              开门状态：
-              <el-tag type="success" v-if="item.open_status">已开门</el-tag>
-              <el-tag type="danger" v-else>未开门</el-tag>
+              开门方式：
+              <el-tag type="success" v-if="item.sys_status">支持远程开门</el-tag>
+              <el-text size="small" v-else>{{ item.sys_notes || '无' }}</el-text>
             </p>
           </div>
           <div class="card-actions">
@@ -43,13 +49,18 @@
                 :disabled="item.isExpired"
                 size="small"
                 type="primary"
-                @click="goToRoomEntry(item.id)"
+                @click="goToRoomEntry(item.id, item.sys_status)"
             >
-              规范维护
+              准备施工
             </el-button>
           </div>
         </div>
       </el-card>
+    </div>
+
+    <!-- 显示已失效的工单按钮 -->
+    <div v-if="!showExpired" style="text-align: center; margin-top: 20px;">
+      <el-button @click="toggleShowExpired" type="text" size="small">显示已失效的工单</el-button>
     </div>
 
     <!-- 分页 -->
@@ -103,10 +114,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import {ref, onMounted, UnwrapRef, computed} from 'vue';
 import axiosInstance from '@/api/axiosConfig';
 import { CirclePlus } from '@element-plus/icons-vue';
 import { useRouter } from 'vue-router';
+const loading = ref(true)
 
 interface ApprovalDetail {
   id?: number;
@@ -142,6 +154,7 @@ const pageSize = ref(10);
 const totalItems = ref(0);
 const selectedDetail = ref<ApprovalDetail>({});
 const router = useRouter();
+const showExpired = ref(false);  // 用来控制是否显示已失效工单
 
 // 给加一个响应布局，给寸土寸金手机屏幕节约一点空间
 const updateDialogWidth = () => {
@@ -179,20 +192,37 @@ const fetchApprovalList = async (page = 1) => {
     currentPage.value = page;
   } catch (error) {
     console.error('获取审批工单失败:', error);
+  } finally {
+    loading.value = false
+
   }
 };
 
 // 工单详情
 const viewDetail = (row: ApprovalDetail) => {
   selectedDetail.value = row;
+  console.log('selectedDetail:', selectedDetail.value);
   updateDialogWidth();
   detailDialogVisible.value = true;
 };
 
 // 去开门了
-const goToRoomEntry = (approveId: number) => {
-  router.push({ path: `/roomentry/${approveId}` });
+// const goToRoomEntry = (approveId: UnwrapRef<ApprovalDetail["id"]> | undefined) => {
+//   router.push({ path: `/roomentry/${approveId}` });
+// };
+const goToRoomEntry = (approveId: UnwrapRef<ApprovalDetail["id"]> | undefined, isRemoteOpen: UnwrapRef<ApprovalDetail["sys_status"]> | undefined) => {
+  router.push({ path: `/roomentry/${approveId}`, query: { remoteOpen: isRemoteOpen.toString() } });
 };
+
+// 切换显示已失效工单
+const toggleShowExpired = () => {
+  showExpired.value = !showExpired.value;
+};
+
+// 获取过滤后的工单列表
+const filteredApprovalList = computed(() => {
+  return showExpired.value ? approvalList.value : approvalList.value.filter(item => !item.isExpired);
+});
 
 // 初始化数据
 onMounted(() => {

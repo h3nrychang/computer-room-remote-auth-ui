@@ -1,6 +1,6 @@
 {
   "name": "computer-room-remote-auth-ui",
-  "version": "1.0.0",
+  "version": "4.11.26",
   "description": "A remote access control management system for computer rooms, powered by Vue3, Element Plus and Axios.",
   "scripts": {
     "serve": "vue-cli-service serve",

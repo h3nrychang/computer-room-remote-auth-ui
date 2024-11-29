@@ -34,6 +34,7 @@
         <span>管理</span>
       </template>
       <el-menu-item index="/room">机房管理</el-menu-item>
+      <el-menu-item index="/room">机房管理</el-menu-item>
       <el-menu-item index="/manager">机房长管理</el-menu-item>
       <el-menu-item index="/users">用户管理</el-menu-item>
     </el-sub-menu>
@@ -78,6 +79,11 @@ onMounted(() => {
 
 <style lang="scss">
 .el-menu-demo {
-  width: 100%
+  width: 100%;
+  border: none;
+}
+.el-menu--horizontal.el-menu {
+  --el-menu-border-color: transparent; // 设置边框颜色为透明
+  border-bottom: none; // 确保没有底部边框
 }
 </style>

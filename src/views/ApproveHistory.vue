@@ -106,7 +106,12 @@
                     :preview-src-list="photos.map(p => p.path)"
                     fit="contain"
                 >
-                  <div class="image-caption">{{ photo.type }}</div>
+                  <!-- 在图片下方显示 type 的值 -->
+                  <div class="image-caption">
+                    <el-tag :type="photo.type === 'in' ? 'success' : 'warning'" class="photo-tag">
+                      {{ photo.type }}
+                    </el-tag>
+                  </div>
                 </el-image>
               </el-col>
             </el-row>
@@ -135,7 +140,7 @@
   </template>
   
   <script lang="ts" setup>
-  import { ref, onMounted,nextTick } from 'vue'
+  import {ref, onMounted, nextTick, UnwrapRef} from 'vue'
   import axios from '@/api/axiosConfig'
   import { ElMessage } from 'element-plus'
   import axiosInstance from '@/api/axiosConfig';
@@ -172,6 +177,7 @@
       console.log('approves updated:', approves.value);
     } catch (error) {
       ElMessage.error('出现错误，您可以截图给开发者查看：' + error);
+      ElMessage.error(error.response?.data?.detail || '');
     } finally {
       loading.value = false;
     }
@@ -215,10 +221,12 @@
     manager_telephone?: string;
     pro_status?: boolean;
     app_status?: boolean;
+    open_status?: boolean;
     sys_status?: boolean;
     notes?: string;
     sys_notes?: string;
     create_time?: string;
+    error_msg?: string;
   }
 
   interface ApprovalListResponse {
@@ -285,16 +293,17 @@
       const response = await axiosInstance.get('/approve/photograph', {
         params: { approve_id: approveId },
       });
+      // 添加 API 返回的照片路径
       photos.value = response.data.photos.map((photo: any) => ({
         ...photo,
         path: `${API_BASE_URL}${photo.path}`,
       }));
-      photoDialogVisible.value = true;
+      photoDialogVisible.value = true; // 打开对话框
     } catch (error) {
-      ElMessage.error('获取照片失败，你可以将错误信息截图给开发者：' + error);
-      console.error('获取照片失败:', error);
+      ElMessage.error(error.response?.data?.detail || '错误：' + error + "您可以截图给开发者查看");
     }
   };
+
 
 
   // 初始化数据
@@ -326,6 +335,7 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); /* 自动调整列数，最小宽度为300px */
     gap: 20px;
+    padding-bottom: 30px;
   }
 
   .card {
@@ -363,6 +373,25 @@
 
   .el-image {
     border-radius: 8px;
+  }
+
+  .photo-gallery {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .image-caption {
+    position: relative;
+    padding-top: 10px;
+    text-align: center;
+  }
+
+  .photo-tag {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
   }
 
 

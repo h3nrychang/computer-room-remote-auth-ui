@@ -12,12 +12,13 @@
     v-loading="loading" 
     element-loading-text="数据正在赶来的路上..." 
     :data="users" 
-    style="width: 100%"
+    style="width: 200px"
   >
-    <el-menu-item index="/dashboard">发起申请</el-menu-item>
+    <el-menu-item index="/dashboard"><el-icon><EditPen /></el-icon>发起申请</el-menu-item>
 
     <el-sub-menu index="1" v-if="roleID == 1">
       <template #title>
+        <el-icon><Document /></el-icon>
         <span>工单审批</span>
       </template>
       <el-menu-item index="/approvelistpc">待审工单</el-menu-item>
@@ -26,6 +27,7 @@
 
     <el-sub-menu index="2">
       <template #title>
+        <el-icon><User /></el-icon>
         <span>个人中心</span>
       </template>
       <el-menu-item index="/changepassword">修改密码</el-menu-item>
@@ -34,6 +36,7 @@
 
     <el-sub-menu index="3" v-if="roleID == 1">
       <template #title>
+        <el-icon><Cpu /></el-icon>
         <span>系统管理</span>
       </template>
       <el-menu-item index="/room">机房管理</el-menu-item>
@@ -41,44 +44,44 @@
       <el-menu-item index="/users">用户管理</el-menu-item>
     </el-sub-menu>
 
-    <el-menu-item index="/dashboard"><el-icon><DataLine /></el-icon>Dashboard</el-menu-item>
+<!--    <el-menu-item index="/dashboard"><el-icon><DataLine /></el-icon>Dashboard</el-menu-item>-->
 
-    <el-sub-menu index="1">
-      <template #title>
-        <el-icon><Key /></el-icon>
-        <span>系统用户管理</span>
-      </template>
-      <el-menu-item v-if="roleID == 1" index="/users">用户列表</el-menu-item>
-      <el-menu-item index="/changepassword">修改密码</el-menu-item>
-      <el-menu-item index="/changephonenumber">换绑手机</el-menu-item>
-    </el-sub-menu>
+<!--    <el-sub-menu index="1">-->
+<!--      <template #title>-->
+<!--        <el-icon><Key /></el-icon>-->
+<!--        <span>系统用户管理</span>-->
+<!--      </template>-->
+<!--      <el-menu-item v-if="roleID == 1" index="/users">用户列表</el-menu-item>-->
+<!--      <el-menu-item index="/changepassword">修改密码</el-menu-item>-->
+<!--      <el-menu-item index="/changephonenumber">换绑手机</el-menu-item>-->
+<!--    </el-sub-menu>-->
 
-    <el-sub-menu index="2" v-if="roleID == 1">
-      <template #title>
-        <el-icon><User /></el-icon>
-        <span>机房长管理</span>
-      </template>
-      <el-menu-item index="/manager">机房长列表</el-menu-item>
-      <!-- <el-menu-item index="1-2">修改密码</el-menu-item> -->
-      <!-- <el-menu-item index="1-3">密码重置</el-menu-item> -->
-    </el-sub-menu>
+<!--    <el-sub-menu index="2" v-if="roleID == 1">-->
+<!--      <template #title>-->
+<!--        <el-icon><User /></el-icon>-->
+<!--        <span>机房长管理</span>-->
+<!--      </template>-->
+<!--      <el-menu-item index="/manager">机房长列表</el-menu-item>-->
+<!--      &lt;!&ndash; <el-menu-item index="1-2">修改密码</el-menu-item> &ndash;&gt;-->
+<!--      &lt;!&ndash; <el-menu-item index="1-3">密码重置</el-menu-item> &ndash;&gt;-->
+<!--    </el-sub-menu>-->
 
-    <el-sub-menu index="3" v-if="roleID == 1">
-      <template #title>
-        <el-icon><Cpu /></el-icon>
-        <span>机房管理</span>
-      </template>
-      <el-menu-item index="/room">机房列表</el-menu-item>
-    </el-sub-menu>
+<!--    <el-sub-menu index="3" v-if="roleID == 1">-->
+<!--      <template #title>-->
+<!--        <el-icon><Cpu /></el-icon>-->
+<!--        <span>机房管理</span>-->
+<!--      </template>-->
+<!--      <el-menu-item index="/room">机房列表</el-menu-item>-->
+<!--    </el-sub-menu>-->
 
-    <el-sub-menu index="4" v-if="roleID == 1">
-      <template #title>
-        <el-icon><Document /></el-icon>
-        <span>审批管理</span>
-      </template>
-      <el-menu-item index="/approvelistpc">待审工单</el-menu-item>
-      <el-menu-item index="/approvehistory">历史工单</el-menu-item>
-    </el-sub-menu>
+<!--    <el-sub-menu index="4" v-if="roleID == 1">-->
+<!--      <template #title>-->
+<!--        <el-icon><Document /></el-icon>-->
+<!--        <span>审批管理</span>-->
+<!--      </template>-->
+<!--      <el-menu-item index="/approvelistpc">待审工单</el-menu-item>-->
+<!--      <el-menu-item index="/approvehistory">历史工单</el-menu-item>-->
+<!--    </el-sub-menu>-->
 <!-- 
     <el-sub-menu index="5">
       <template #title>

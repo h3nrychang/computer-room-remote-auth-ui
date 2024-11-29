@@ -42,7 +42,6 @@ const selectedRoomName = ref('')
 const selectedRoomId = ref<number | null>(null) // 保存选择机房的ID
 const notes = ref('') // 备注内容
 const roleId = ref<number | null>(null) // 用户角色ID
-
 const router = useRouter()
 
 // 获取用户角色
